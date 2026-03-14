@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0"/>
+  <meta name="theme-color" content="#2C5F2E"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-title" content="MóveisStudio"/>
+  <title>MóveisStudio</title>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey:"AIzaSyCcKRWMbbSsHJM25v9whNeNNIaLEYja_lQ",
+      authDomain:"moveis-studio.firebaseapp.com",
+      projectId:"moveis-studio",
+      storageBucket:"moveis-studio.firebasestorage.app",
+      messagingSenderId:"30700637821",
+      appId:"1:30700637821:web:4cd3426ed356100c53eb14"
+    });
+    window.__auth = firebase.auth();
+    window.__db   = firebase.firestore();
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    html,body{background:#F2EDE8;font-family:'Georgia',serif}
+    #root{max-width:480px;margin:0 auto;min-height:100vh}
+    @keyframes pulse-red{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}60%{box-shadow:0 0 0 8px rgba(220,38,38,0)}}
+    @keyframes pulse-orange{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.4)}60%{box-shadow:0 0 0 8px rgba(217,119,6,0)}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .pulse-red{animation:pulse-red 2s ease-in-out infinite}
+    .pulse-orange{animation:pulse-orange 2s ease-in-out infinite}
+    .card-in{animation:slideUp .25s ease}
+    .alert-in{animation:slideDown .3s ease}
+    input,select,textarea{background:#fff;border:2px solid #D5C9BF;color:#1C1410;padding:12px 14px;font-size:15px;width:100%;outline:none;font-family:'DM Sans',sans-serif;border-radius:10px;transition:border .2s;-webkit-appearance:none;appearance:none}
+    input:focus,select:focus,textarea:focus{border-color:#2C5F2E;box-shadow:0 0 0 3px rgba(44,95,46,.12)}
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:#C8A97A;border-radius:2px}
+    .fab{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);width:56px;height:56px;border-radius:50%;background:#2C5F2E;color:#fff;border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(44,95,46,.5);transition:all .2s;z-index:50}
+    .fab:active{background:#1E4020;transform:translateX(-50%) scale(.95)}
+    .tab-btn{flex:1;padding:10px 0;border:none;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;color:#9C8B7D;border-bottom:3px solid transparent;transition:all .2s}
+    .tab-btn.active{color:#2C5F2E;border-bottom-color:#2C5F2E}
+    .chip{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border-radius:20px;border:2px solid #D5C9BF;background:#fff;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;color:#6B5744;transition:all .2s;white-space:nowrap}
+    .chip.active{background:#2C5F2E;color:#fff;border-color:#2C5F2E}
+    .btn-green{background:#2C5F2E;color:#fff;border:none;border-radius:12px;padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;width:100%;display:flex;align-items:center;justify-content:center;gap:8px}
+    .btn-green:active{background:#1E4020;transform:scale(.98)}
+    .btn-red{background:#fff;color:#DC2626;border:2px solid #DC2626;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-red:active{background:#FEF2F2}
+    .btn-blue{background:#fff;color:#1D4ED8;border:2px solid #1D4ED8;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-blue:active{background:#EFF6FF}
+    .btn-outline{background:#fff;color:#2C5F2E;border:2px solid #2C5F2E;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;flex:1;display:flex;align-items:center;justify-content:center;gap:6px}
+    .btn-outline:active{background:#F0F7F0}
+    .section-label{font-size:10px;color:#9C8B7D;letter-spacing:1.8px;text-transform:uppercase;font-family:'DM Sans',sans-serif;font-weight:700;margin-bottom:6px}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+const COMISSAO_PCT = 0.05;
+const ADMIN_EMAIL  = "agenciaindm@gmail.com";
+const PIX_CHAVE    = "06981774950";
+const PIX_NOME     = "MóveisStudio";
+const PLANO_PRECO  = "R$ 5,00/mês";
+
+const STATUS = {
+  em_projeto:           {label:"Em Projeto",   icon:"✏️",color:"#92400E",bg:"#FEF3C7",border:"#F59E0B"},
+  na_fabrica:           {label:"Na Fábrica",    icon:"🏭",color:"#065F46",bg:"#D1FAE5",border:"#10B981"},
+  aguardando_pagamento: {label:"Ag. Pagamento", icon:"💰",color:"#991B1B",bg:"#FEE2E2",border:"#EF4444"},
+  concluido:            {label:"Concluído",     icon:"✅",color:"#1E3A5F",bg:"#DBEAFE",border:"#3B82F6"},
+};
+
+const PRAZO = (prazo) => {
+  const d = Math.ceil((new Date(prazo)-new Date())/86400000);
+  if(d<0)   return{d,icon:"🚨",label:`${Math.abs(d)}d atrasado`,color:"#fff",   bg:"#DC2626",border:"#991B1B",pulse:"red"};
+  if(d===0) return{d,icon:"🔴",label:"Vence HOJE",              color:"#fff",   bg:"#DC2626",border:"#991B1B",pulse:"red"};
+  if(d<=3)  return{d,icon:"🟠",label:`${d}d restantes`,         color:"#fff",   bg:"#D97706",border:"#B45309",pulse:"orange"};
+  if(d<=7)  return{d,icon:"🟡",label:`${d}d restantes`,         color:"#92400E",bg:"#FEF3C7",border:"#F59E0B",pulse:null};
+  if(d<=14) return{d,icon:"🟢",label:`${d}d restantes`,         color:"#065F46",bg:"#D1FAE5",border:"#10B981",pulse:null};
+  return          {d,icon:"📅",label:`${d}d restantes`,         color:"#374151",bg:"#F3F4F6",border:"#D1D5DB",pulse:null};
+};
+
+const R$ = (v)=>Number(v).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const DD  = (s)=>{if(!s)return"—";const[y,m,d]=s.split("-");return`${d}/${m}/${y}`;};
+const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2);
+const FORM0 = {nome:"",cliente:"",contato:"",valor:"",pago:"",prazo:"",status:"em_projeto",descricao:""};
+
+const Spin = ()=><div style={{width:18,height:18,border:"2px solid rgba(255,255,255,.4)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin .6s linear infinite",display:"inline-block"}}/>;
+const Badge = ({st})=><span style={{display:"inline-flex",alignItems:"center",gap:4,padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif",background:st.bg,color:st.color,border:`1.5px solid ${st.border}`}}>{st.icon} {st.label}</span>;
+const PrazoBadge = ({prazo,large})=>{const p=PRAZO(prazo);return<span className={p.pulse==="red"?"pulse-red":p.pulse==="orange"?"pulse-orange":""} style={{display:"inline-flex",alignItems:"center",gap:4,padding:large?"5px 14px":"3px 10px",borderRadius:20,fontSize:large?13:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif",background:p.bg,color:p.color,border:`1.5px solid ${p.border}`,whiteSpace:"nowrap"}}>{p.icon} {p.label}</span>;};
+const ProgressBar = ({pct,color})=><div style={{height:6,background:"#E5E7EB",borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",width:`${Math.min(pct,100)}%`,background:color||(pct>=100?"#10B981":"#2C5F2E"),borderRadius:3,transition:"width .5s ease"}}/></div>;
+
+// ── Tela de planos / upgrade ──────────────────────────────────────────────────
+function PlanosScreen({usuario, plano, onVoltar}) {
+  const [copiado, setCopiado] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+
+  const copiarPix = () => {
+    if(navigator.clipboard) navigator.clipboard.writeText(PIX_CHAVE);
+    setCopiado(true);
+    setTimeout(()=>setCopiado(false),3000);
+  };
+
+  const avisarPagamento = async () => {
+    try {
+      await window.__db.collection("pagamentos_pendentes").add({
+        uid: usuario.uid,
+        email: usuario.email,
+        nome: usuario.displayName||usuario.email,
+        valor: 5,
+        criadoEm: new Date().toISOString(),
+        status: "aguardando"
+      });
+      setEnviado(true);
+    } catch(_){}
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:"#F2EDE8",paddingBottom:40}} className="card-in">
+      <div style={{background:"#fff",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+        <button onClick={onVoltar} style={{background:"#F2EDE8",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700}}>Planos</div>
+      </div>
+      <div style={{padding:"20px 16px",display:"flex",flexDirection:"column",gap:16}}>
+
+        {/* Plano Free */}
+        <div style={{background:"#fff",border:`2px solid ${plano==="free"?"#2C5F2E":"#E5DDD5"}`,borderRadius:16,padding:"20px",position:"relative"}}>
+          {plano==="free"&&<div style={{position:"absolute",top:-1,right:16,background:"#2C5F2E",color:"#fff",fontSize:10,fontWeight:700,fontFamily:"'DM Sans',sans-serif",padding:"3px 10px",borderRadius:"0 0 8px 8px",letterSpacing:"1px"}}>ATUAL</div>}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+            <div><div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900}}>Free</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B5744"}}>Para começar</div></div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#2C5F2E"}}>R$ 0</div>
+          </div>
+          {[["✅","Até 2 projetos simultâneos"],["✅","Alertas de prazo"],["✅","Status dos projetos"],["✅","Relatório básico"],["❌","Meta de comissão"],["❌","Projetos ilimitados"],["❌","Relatório anual completo"]].map(([ic,txt],i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:ic==="❌"?"#9C8B7D":"#1C1410"}}><span>{ic}</span>{txt}</div>
+          ))}
+        </div>
+
+        {/* Plano Premium */}
+        <div style={{background:"linear-gradient(135deg,#1E4020,#2C5F2E)",border:"2px solid #C8A97A",borderRadius:16,padding:"20px",position:"relative",overflow:"hidden"}}>
+          {plano==="premium"&&<div style={{position:"absolute",top:-1,right:16,background:"#C8A97A",color:"#1E4020",fontSize:10,fontWeight:700,fontFamily:"'DM Sans',sans-serif",padding:"3px 10px",borderRadius:"0 0 8px 8px",letterSpacing:"1px"}}>ATUAL</div>}
+          <div style={{position:"absolute",top:-20,right:-20,width:100,height:100,background:"rgba(200,169,122,.1)",borderRadius:"50%"}}/>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+            <div><div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900,color:"#fff"}}>Premium ⭐</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#C8A97A"}}>Tudo ilimitado</div></div>
+            <div style={{textAlign:"right"}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:28,fontWeight:900,color:"#C8A97A"}}>R$ 5</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,.6)"}}>/mês</div></div>
+          </div>
+          {[["✅","Projetos ilimitados"],["✅","Meta de comissão"],["✅","Relatório anual completo"],["✅","Alertas de prazo"],["✅","Todos os recursos Free"],["✅","Suporte prioritário"]].map(([ic,txt],i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#fff"}}><span>{ic}</span>{txt}</div>
+          ))}
+        </div>
+
+        {/* Pagamento via Pix */}
+        {plano!=="premium" && (
+          <div style={{background:"#fff",border:"2px solid #E5DDD5",borderRadius:16,padding:"20px"}}>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,marginBottom:4}}>Assinar Premium</div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B5744",marginBottom:16}}>Pague R$ 5,00 via Pix e avise — liberamos em minutos!</div>
+
+            <div style={{background:"#F9F7F5",borderRadius:12,padding:"14px",marginBottom:12,textAlign:"center"}}>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9C8B7D",marginBottom:6,letterSpacing:"1px",textTransform:"uppercase",fontWeight:700}}>Chave Pix (CPF)</div>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:20,fontWeight:700,color:"#1C1410",letterSpacing:"2px",marginBottom:10}}>069.817.749-50</div>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B5744",marginBottom:12}}>👤 {PIX_NOME} · Valor: <strong>R$ 5,00</strong></div>
+              <button onClick={copiarPix} style={{background:copiado?"#2C5F2E":"#1C1410",color:"#fff",border:"none",borderRadius:10,padding:"10px 20px",fontSize:14,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",width:"100%",transition:"all .2s"}}>
+                {copiado?"✅ Chave copiada!":"📋 Copiar chave Pix"}
+              </button>
+            </div>
+
+            {!enviado?(
+              <button onClick={avisarPagamento} className="btn-green">
+                ✅ Já paguei — avisar administrador
+              </button>
+            ):(
+              <div style={{background:"#D1FAE5",border:"2px solid #10B981",borderRadius:12,padding:"14px",textAlign:"center"}}>
+                <div style={{fontSize:24,marginBottom:6}}>🎉</div>
+                <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#065F46"}}>Aviso enviado!</div>
+                <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#065F46",marginTop:4}}>Seu Premium será liberado em breve.</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {plano==="premium"&&(
+          <div style={{background:"linear-gradient(135deg,#ECFDF5,#D1FAE5)",border:"2px solid #10B981",borderRadius:12,padding:"14px",textAlign:"center"}}>
+            <div style={{fontSize:28,marginBottom:6}}>⭐</div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,color:"#065F46"}}>Você é Premium!</div>
+            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#065F46",marginTop:4}}>Aproveite todos os recursos ilimitados.</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Painel Admin ──────────────────────────────────────────────────────────────
+function AdminPanel({onVoltar}) {
+  const [clientes, setClientes] = useState([]);
+  const [pendentes, setPendentes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("pendentes");
+
+  useEffect(()=>{
+    const u1 = window.__db.collection("pagamentos_pendentes").where("status","==","aguardando").onSnapshot(snap=>{
+      setPendentes(snap.docs.map(d=>({id:d.id,...d.data()})));
+    });
+    const u2 = window.__db.collection("users").onSnapshot(snap=>{
+      setClientes(snap.docs.map(d=>({id:d.id,...d.data()})));
+      setLoading(false);
+    });
+    return()=>{u1();u2();};
+  },[]);
+
+  const diasRestantes = (venc) => {
+    if(!venc) return null;
+    return Math.ceil((new Date(venc) - new Date()) / 86400000);
+  };
+
+  const liberarPremium = async(p) => {
+    try {
+      const agora = new Date();
+      const venc = new Date(agora); venc.setDate(venc.getDate()+30);
+      await window.__db.collection("users").doc(p.uid).update({plano:"premium",planoAtualizadoEm:agora.toISOString(),planoVencimento:venc.toISOString()});
+      if(p.id) await window.__db.collection("pagamentos_pendentes").doc(p.id).update({status:"aprovado",aprovadoEm:agora.toISOString()});
+    } catch(e){ alert("Erro: "+e.message); }
+  };
+
+  const revogarPremium = async(uid) => {
+    if(!window.confirm("Revogar Premium deste cliente?")) return;
+    await window.__db.collection("users").doc(uid).update({plano:"free",planoVencimento:null});
+  };
+
+  const premiums = clientes.filter(c=>c.plano==="premium");
+  const frees    = clientes.filter(c=>c.plano!=="premium");
+
+  return(
+    <div style={{minHeight:"100vh",background:"#F2EDE8",paddingBottom:40}} className="card-in">
+      <div style={{background:"linear-gradient(135deg,#1E4020,#2C5F2E)",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.2)"}}>
+        <button onClick={onVoltar} style={{background:"rgba(255,255,255,.15)",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18,color:"#fff"}}>←</button>
+        <div>
+          <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700,color:"#fff"}}>Painel Admin</div>
+          <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,.7)"}}>MóveisStudio</div>
+        </div>
+        {pendentes.length>0&&<div style={{marginLeft:"auto",background:"#DC2626",color:"#fff",borderRadius:20,padding:"4px 12px",fontSize:12,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>🔔 {pendentes.length}</div>}
+      </div>
+
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,padding:"16px 16px 0"}}>
+        {[{l:"Total",v:clientes.length,c:"#1C1410"},{l:"Premium ⭐",v:premiums.length,c:"#C8A97A"},{l:"Free",v:frees.length,c:"#2C5F2E"}].map((s,i)=>(
+          <div key={i} style={{background:"#fff",borderRadius:12,padding:"12px 10px",textAlign:"center",border:"1px solid #E5DDD5"}}>
+            <div className="section-label">{s.l}</div>
+            <div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900,color:s.c}}>{s.v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:"flex",background:"#fff",margin:"16px 0 0",borderBottom:"1px solid #EDE8E3"}}>
+        {[["pendentes",`🔔 Pendentes (${pendentes.length})`],["todos","👥 Clientes"],["premium","⭐ Premium"]].map(([k,l])=>(
+          <button key={k} className={`tab-btn ${tab===k?"active":""}`} style={{fontSize:12,padding:"10px 4px"}} onClick={()=>setTab(k)}>{l}</button>
+        ))}
+      </div>
+
+      <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:10}}>
+        {loading&&<div style={{textAlign:"center",padding:40,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>Carregando...</div>}
+
+        {/* Pendentes */}
+        {tab==="pendentes"&&(pendentes.length===0
+          ?<div style={{textAlign:"center",padding:40}}><div style={{fontSize:40,marginBottom:8}}>✅</div><div style={{fontFamily:"'DM Sans',sans-serif",color:"#9C8B7D"}}>Nenhum pagamento pendente</div></div>
+          :pendentes.map(p=>(
+            <div key={p.id} style={{background:"#fff",borderRadius:14,padding:"14px 16px",border:"2px solid #F59E0B"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div><div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14}}>{p.nome}</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B5744"}}>{p.email}</div></div>
+                <div style={{background:"#FEF3C7",borderRadius:8,padding:"4px 10px",fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#B45309"}}>R$ {p.valor},00</div>
+              </div>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9C8B7D",marginBottom:10}}>📅 {new Date(p.criadoEm).toLocaleDateString("pt-BR")}</div>
+              <button onClick={()=>liberarPremium(p)} className="btn-green" style={{fontSize:14}}>⭐ Liberar Premium</button>
+            </div>
+          ))
+        )}
+
+        {/* Todos os clientes */}
+        {tab==="todos"&&clientes.map(c=>(
+          <div key={c.id} style={{background:"#fff",borderRadius:14,padding:"14px 16px",border:"1px solid #E5DDD5",display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:40,height:40,background:c.plano==="premium"?"linear-gradient(135deg,#1E4020,#2C5F2E)":"#F2EDE8",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{c.plano==="premium"?"⭐":"👤"}</div>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.email}</div>
+              <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9C8B7D",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.email}</div>
+            </div>
+            <div style={{flexShrink:0}}>
+              {c.plano==="premium"
+                ?<button onClick={()=>revogarPremium(c.id)} style={{background:"#FEE2E2",color:"#DC2626",border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Revogar</button>
+                :<button onClick={()=>liberarPremium({uid:c.id,id:null})} style={{background:"#D1FAE5",color:"#065F46",border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>→ Premium</button>
+              }
+            </div>
+          </div>
+        ))}
+
+        {/* Só Premium */}
+        {tab==="premium"&&(premiums.length===0
+          ?<div style={{textAlign:"center",padding:40}}><div style={{fontSize:40,marginBottom:8}}>⭐</div><div style={{fontFamily:"'DM Sans',sans-serif",color:"#9C8B7D"}}>Nenhum cliente Premium ainda</div></div>
+          :premiums.map(c=>{
+            const d = diasRestantes(c.planoVencimento);
+            const vencendo = d !== null && d <= 5;
+            const expirado = d !== null && d < 0;
+            return(
+            <div key={c.id} style={{background:expirado?"#FEE2E2":vencendo?"#FEF3C7":"linear-gradient(135deg,#1E4020,#2C5F2E)",borderRadius:14,padding:"14px 16px",border:expirado?"2px solid #EF4444":vencendo?"2px solid #F59E0B":"2px solid transparent"}}>
+              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:d!==null?8:0}}>
+                <div style={{width:40,height:40,background:expirado?"#FEE2E2":vencendo?"#FEF3C7":"rgba(200,169,122,.2)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{expirado?"⚠️":vencendo?"🕐":"⭐"}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:expirado?"#991B1B":vencendo?"#92400E":"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.nome||c.email}</div>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:expirado?"#B91C1C":vencendo?"#B45309":"#C8A97A",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c.email}</div>
+                </div>
+                <button onClick={()=>revogarPremium(c.id)} style={{background:expirado?"#DC2626":vencendo?"#D97706":"rgba(220,38,38,.2)",color:expirado||vencendo?"#fff":"#FCA5A5",border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",flexShrink:0}}>Revogar</button>
+              </div>
+              {d !== null && (
+                <div style={{background:expirado?"rgba(220,38,38,.1)":vencendo?"rgba(217,119,6,.1)":"rgba(255,255,255,.1)",borderRadius:8,padding:"8px 12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:expirado?"#DC2626":vencendo?"#D97706":"rgba(255,255,255,.7)"}}>
+                    📅 Vence: {c.planoVencimento ? new Date(c.planoVencimento).toLocaleDateString("pt-BR") : "—"}
+                  </div>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:expirado?"#DC2626":vencendo?"#D97706":"#C8A97A"}}>
+                    {expirado ? `⚠️ Expirado há ${Math.abs(d)}d` : d===0 ? "⚠️ Vence hoje!" : `${d} dias restantes`}
+                  </div>
+                </div>
+              )}
+              {d !== null && (
+                <div style={{marginTop:6,height:4,background:expirado?"rgba(220,38,38,.2)":vencendo?"rgba(217,119,6,.2)":"rgba(255,255,255,.15)",borderRadius:2,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:`${Math.max(0,Math.min(100,Math.round((d/30)*100)))}%`,background:expirado?"#DC2626":vencendo?"#F59E0B":"#C8A97A",borderRadius:2,transition:"width .5s ease"}}/>
+                </div>
+              )}
+              {d !== null && !expirado && (
+                <button onClick={()=>liberarPremium({uid:c.id,id:null})} style={{marginTop:8,width:"100%",background:vencendo?"#2C5F2E":"rgba(200,169,122,.15)",color:vencendo?"#fff":"#C8A97A",border:`1px solid ${vencendo?"#2C5F2E":"rgba(200,169,122,.3)"}`,borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>🔄 Renovar +30 dias</button>
+              )}
+              {expirado && (
+                <button onClick={()=>liberarPremium({uid:c.id,id:null})} style={{marginTop:8,width:"100%",background:"#2C5F2E",color:"#fff",border:"none",borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>⭐ Reativar Premium</button>
+              )}
+            </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Auth Screen ───────────────────────────────────────────────────────────────
+function AuthScreen({onLogin}) {
+  const [modo,setModo]=useState("login");
+  const [nome,setNome]=useState("");
+  const [email,setEmail]=useState("");
+  const [senha,setSenha]=useState("");
+  const [show,setShow]=useState(false);
+  const [erro,setErro]=useState("");
+  const [loading,setLoading]=useState(false);
+
+  const handleLogin=async()=>{
+    if(!email||!senha){setErro("Preencha e-mail e senha");return;}
+    setLoading(true);setErro("");
+    try{const c=await window.__auth.signInWithEmailAndPassword(email.trim(),senha);onLogin(c.user);}
+    catch(e){setErro(e.code==="auth/wrong-password"||e.code==="auth/user-not-found"||e.code==="auth/invalid-credential"?"E-mail ou senha incorretos":"Erro ao entrar.");}
+    setLoading(false);
+  };
+
+  const handleCadastro=async()=>{
+    if(!nome||!email||!senha){setErro("Preencha todos os campos");return;}
+    if(senha.length<6){setErro("Senha mínimo 6 caracteres");return;}
+    setLoading(true);setErro("");
+    try{
+      const c=await window.__auth.createUserWithEmailAndPassword(email.trim(),senha);
+      await c.user.updateProfile({displayName:nome.trim()});
+      await window.__db.collection("users").doc(c.user.uid).set({nome:nome.trim(),email:email.trim(),projects:[],meta:0,plano:"free",criadoEm:new Date().toISOString()});
+      onLogin(c.user);
+    }catch(e){
+      if(e.code==="auth/email-already-in-use")setErro("E-mail já cadastrado");
+      else setErro("Erro ao cadastrar.");
+    }
+    setLoading(false);
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#1E4020 0%,#2C5F2E 50%,#3A7A3D 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px"}}>
+      <div style={{textAlign:"center",marginBottom:32}}>
+        <div style={{width:90,height:90,background:"rgba(255,255,255,.12)",borderRadius:24,display:"flex",alignItems:"center",justifyContent:"center",fontSize:48,margin:"0 auto 16px",border:"2px solid rgba(200,169,122,.4)"}}>🏠</div>
+        <div style={{fontFamily:"'Playfair Display',serif",fontSize:34,fontWeight:900,color:"#fff",lineHeight:1}}>Móveis<span style={{color:"#C8A97A"}}>Studio</span></div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,.6)",letterSpacing:"3px",textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif",marginTop:6}}>Gestão de Projetos</div>
+      </div>
+      <div style={{background:"#fff",borderRadius:20,padding:"28px 24px",width:"100%",maxWidth:380,boxShadow:"0 20px 60px rgba(0,0,0,.3)"}}>
+        <div style={{display:"flex",marginBottom:24,background:"#F9F7F5",borderRadius:12,padding:4}}>
+          {[["login","Entrar"],["cadastro","Criar conta"]].map(([k,l])=>(
+            <button key={k} onClick={()=>{setModo(k);setErro("");}} style={{flex:1,padding:"9px",border:"none",borderRadius:9,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,background:modo===k?"#fff":"transparent",color:modo===k?"#2C5F2E":"#9C8B7D",boxShadow:modo===k?"0 1px 4px rgba(0,0,0,.1)":"none",transition:"all .2s"}}>{l}</button>
+          ))}
+        </div>
+        {modo==="cadastro"&&<div style={{marginBottom:16}}><div className="section-label">Seu nome</div><input value={nome} onChange={e=>setNome(e.target.value)} placeholder="Como você se chama"/></div>}
+        <div style={{marginBottom:16}}><div className="section-label">E-mail</div><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com" autoCapitalize="none" onKeyDown={e=>e.key==="Enter"&&(modo==="login"?handleLogin():handleCadastro())}/></div>
+        <div style={{marginBottom:16}}><div className="section-label">Senha</div>
+          <div style={{position:"relative"}}>
+            <input type={show?"text":"password"} value={senha} onChange={e=>setSenha(e.target.value)} placeholder="••••••••" style={{paddingRight:48}} onKeyDown={e=>e.key==="Enter"&&(modo==="login"?handleLogin():handleCadastro())}/>
+            <button onClick={()=>setShow(s=>!s)} style={{position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",cursor:"pointer",fontSize:18,color:"#9C8B7D"}}>{show?"🙈":"👁️"}</button>
+          </div>
+        </div>
+        {erro&&<div style={{background:"#FEE2E2",border:"1px solid #FCA5A5",borderRadius:8,padding:"10px 14px",marginBottom:12,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#991B1B",textAlign:"center"}}>⚠️ {erro}</div>}
+        <button className="btn-green" onClick={modo==="login"?handleLogin:handleCadastro} disabled={loading}>{loading?<Spin/>:modo==="login"?"🔐 Entrar":"✅ Criar conta grátis"}</button>
+        <div style={{textAlign:"center",marginTop:14,fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#9C8B7D"}}>
+          {modo==="login"?"Não tem conta? ":"Já tem conta? "}
+          <button onClick={()=>{setModo(modo==="login"?"cadastro":"login");setErro("");}} style={{background:"none",border:"none",color:"#2C5F2E",fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",fontSize:12}}>{modo==="login"?"Criar conta grátis":"Entrar"}</button>
+        </div>
+      </div>
+      <div style={{marginTop:20,fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"rgba(255,255,255,.4)"}}>MóveisStudio © 2025</div>
+    </div>
+  );
+}
+
+// ── App Principal ─────────────────────────────────────────────────────────────
+function App() {
+  const [usuario,setUsuario]=useState(null);
+  const [authReady,setAuthReady]=useState(false);
+  const [plano,setPlano]=useState("free");
+  const [projects,setProjects]=useState([]);
+  const [saving,setSaving]=useState(false);
+  const [view,setView]=useState("lista"); // lista|detalhe|form|planos|admin|relatorio|agenda
+  const [filter,setFilter]=useState("todos");
+  const [activeId,setActiveId]=useState(null);
+  const [form,setForm]=useState(FORM0);
+  const [editId,setEditId]=useState(null);
+  const [dismissed,setDismissed]=useState([]);
+  const [tab,setTab]=useState("ativos");
+  const [meta,setMeta]=useState(0);
+  const [metaInput,setMetaInput]=useState("");
+  const [metaEdit,setMetaEdit]=useState(false);
+  const [anoRel,setAnoRel]=useState(new Date().getFullYear());
+  const [agendamentos,setAgendamentos]=useState([]);
+  const [agendaForm,setAgendaForm]=useState({tipo:"medicao",data:"",hora:"",projeto:"",obs:""});
+  const [agendaModal,setAgendaModal]=useState(false);
+  const [agendaEdit,setAgendaEdit]=useState(null);
+  const [agendaMes,setAgendaMes]=useState(new Date().getMonth());
+  const [agendaAno,setAgendaAno]=useState(new Date().getFullYear());
+  const unsubRef=useRef(null);
+  const isAdmin = usuario?.email===ADMIN_EMAIL;
+  const isPremium = plano==="premium" || isAdmin;
+
+  useEffect(()=>{
+    const unsub=window.__auth.onAuthStateChanged(user=>{
+      if(user){setUsuario(user);loadUserData(user);}
+      else{setUsuario(null);setProjects([]);setMeta(0);setPlano("free");}
+      setAuthReady(true);
+    });
+    return()=>unsub();
+  },[]);
+
+  const loadUserData=(user)=>{
+    if(unsubRef.current)unsubRef.current();
+    // Load agendamentos
+    window.__db.collection("users").doc(user.uid).collection("agendamentos").onSnapshot(snap=>{
+      setAgendamentos(snap.docs.map(d=>({id:d.id,...d.data()})));
+    });
+    unsubRef.current=window.__db.collection("users").doc(user.uid).onSnapshot(snap=>{
+      if(snap.exists){const d=snap.data();setProjects(d.projects||[]);setMeta(d.meta||0);setPlano(d.plano||"free");}
+    });
+  };
+
+  const persist=useCallback(async(list)=>{
+    if(!usuario)return;
+    // Free: max 2 projetos ativos
+    if(!isPremium){
+      const ativos=list.filter(p=>p.status!=="concluido");
+      if(ativos.length>2){alert("Plano Free: máximo 2 projetos ativos.\nFaça upgrade para Premium! ⭐");return;}
+    }
+    setSaving(true);setProjects(list);
+    try{await window.__db.collection("users").doc(usuario.uid).update({projects:list});}catch(_){}
+    setSaving(false);
+  },[usuario,isPremium]);
+
+  const saveMeta=async(val)=>{
+    if(!isPremium){setView("planos");return;}
+    const v=parseFloat(val)||0;setMeta(v);setMetaEdit(false);
+    if(!usuario)return;
+    try{await window.__db.collection("users").doc(usuario.uid).update({meta:v});}catch(_){}
+  };
+
+  const saveAgenda = async() => {
+    if(!agendaForm.data||!agendaForm.hora||!agendaForm.tipo) return;
+    const data = {...agendaForm, criadoEm: new Date().toISOString()};
+    try {
+      if(agendaEdit) {
+        await window.__db.collection("users").doc(usuario.uid).collection("agendamentos").doc(agendaEdit).set(data);
+      } else {
+        await window.__db.collection("users").doc(usuario.uid).collection("agendamentos").add(data);
+      }
+      setAgendaModal(false); setAgendaEdit(null);
+      setAgendaForm({tipo:"medicao",data:"",hora:"",projeto:"",obs:""});
+    } catch(e){}
+  };
+
+  const deleteAgenda = async(id) => {
+    if(!window.confirm("Excluir agendamento?")) return;
+    await window.__db.collection("users").doc(usuario.uid).collection("agendamentos").doc(id).delete();
+  };
+
+  const handleLogout=async()=>{if(unsubRef.current)unsubRef.current();await window.__auth.signOut();setView("lista");};
+
+  const ativos=projects.filter(p=>p.status!=="concluido");
+  const concluidos=projects.filter(p=>p.status==="concluido");
+  const lista=tab==="ativos"?ativos:concluidos;
+  const filtered=filter==="todos"?lista:lista.filter(p=>p.status===filter);
+  const sorted=[...filtered].sort((a,b)=>PRAZO(a.prazo).d-PRAZO(b.prazo).d);
+
+  const totalVendas=ativos.reduce((s,p)=>s+p.valor,0);
+  const totalRecebido=ativos.reduce((s,p)=>s+p.pago,0);
+  const comissaoTotal=totalVendas*COMISSAO_PCT;
+  const comissaoPaga=totalRecebido*COMISSAO_PCT;
+  const pctComissao=comissaoTotal>0?Math.round((comissaoPaga/comissaoTotal)*100):0;
+  const comissaoConcluidos=concluidos.reduce((s,p)=>s+p.valor,0)*COMISSAO_PCT;
+  const comissaoParciaisAtivos=ativos.reduce((s,p)=>s+p.pago,0)*COMISSAO_PCT;
+  const comissaoParaMeta=comissaoConcluidos+comissaoParciaisAtivos;
+  const pctMeta=meta>0?Math.min(Math.round((comissaoParaMeta/meta)*100),100):0;
+  const metaRestante=meta>0?Math.max(meta-comissaoParaMeta,0):0;
+  const metaAtingida=meta>0&&comissaoParaMeta>=meta;
+
+  const MESES=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+  const dadosMensais=MESES.map((mes,idx)=>{
+    const dC=concluidos.filter(p=>{if(!p.prazo)return false;const d=new Date(p.prazo);return d.getFullYear()===anoRel&&d.getMonth()===idx;});
+    const dA=ativos.filter(p=>{if(!p.prazo)return false;const d=new Date(p.prazo);return d.getFullYear()===anoRel&&d.getMonth()===idx;});
+    const cc=dC.reduce((s,p)=>s+p.valor*COMISSAO_PCT,0),ca=dA.reduce((s,p)=>s+p.pago*COMISSAO_PCT,0);
+    return{mes,idx,total:cc+ca,comissaoConcl:cc,comissaoAtiv:ca,projetos:dC.length+dA.length};
+  });
+  const maxMensal=Math.max(...dadosMensais.map(d=>d.total),1);
+  const totalAno=dadosMensais.reduce((s,d)=>s+d.total,0);
+  const melhorMes=dadosMensais.reduce((a,b)=>b.total>a.total?b:a,dadosMensais[0]);
+  const criticos=ativos.filter(p=>PRAZO(p.prazo).pulse&&!dismissed.includes(p.id));
+  const activeProject=projects.find(p=>p.id===activeId);
+
+  const openNew=()=>{
+    if(!isPremium&&ativos.length>=2){setView("planos");return;}
+    setEditId(null);setForm(FORM0);setView("form");
+  };
+  const openEdit=(p)=>{setEditId(p.id);setForm({...p,valor:String(p.valor),pago:String(p.pago)});setView("form");};
+  const openDetail=(id)=>{setActiveId(id);setView("detalhe");};
+  const goBack=()=>{setView("lista");setActiveId(null);};
+  const saveForm=()=>{
+    if(!form.nome.trim()||!form.cliente.trim()||!form.prazo)return;
+    const data={...form,id:editId||uid(),valor:parseFloat(form.valor)||0,pago:parseFloat(form.pago)||0};
+    persist(editId?projects.map(p=>p.id===editId?data:p):[...projects,data]);goBack();
+  };
+  const remove=(id)=>{persist(projects.filter(p=>p.id!==id));goBack();};
+  const concluir=(id)=>{persist(projects.map(p=>p.id===id?{...p,status:"concluido"}:p));goBack();};
+  const reabrir=(id)=>{persist(projects.map(p=>p.id===id?{...p,status:"em_projeto"}:p));};
+  const ff=(key)=>(e)=>setForm(f=>({...f,[key]:e.target.value}));
+
+  if(!authReady)return(
+    <div style={{minHeight:"100vh",background:"#2C5F2E",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12}}>
+      <div style={{fontSize:48}}>🏠</div>
+      <div style={{fontFamily:"'DM Sans',sans-serif",color:"rgba(255,255,255,.8)",fontSize:15}}>Carregando...</div>
+    </div>
+  );
+
+  if(!usuario)return<AuthScreen onLogin={u=>{setUsuario(u);loadUserData(u);}}/>;
+  if(view==="planos")return<PlanosScreen usuario={usuario} plano={plano} onVoltar={goBack}/>;
+  if(view==="admin"&&isAdmin)return<AdminPanel onVoltar={goBack}/>;
+
+  const nomeUsuario=usuario.displayName||usuario.email.split("@")[0];
+
+  return(
+    <div style={{minHeight:"100vh",background:"#F2EDE8",color:"#1C1410",position:"relative"}}>
+
+      {view==="lista"&&(
+        <div style={{paddingBottom:90}}>
+          <div style={{background:"#fff",padding:"16px 20px 0",boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:38,height:38,background:"#2C5F2E",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>🏠</div>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:900,lineHeight:1.1}}>Móveis<span style={{color:"#2C5F2E"}}>Studio</span></div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <div style={{fontSize:10,color:"#9C8B7D",letterSpacing:"1.5px",textTransform:"uppercase",fontFamily:"'DM Sans',sans-serif"}}>👤 {nomeUsuario}</div>
+                    {isPremium&&!isAdmin&&<span style={{background:"linear-gradient(135deg,#1E4020,#2C5F2E)",color:"#C8A97A",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:6,fontFamily:"'DM Sans',sans-serif"}}>⭐ PREMIUM</span>}
+                    {isAdmin&&<span style={{background:"#DC2626",color:"#fff",fontSize:9,fontWeight:700,padding:"2px 6px",borderRadius:6,fontFamily:"'DM Sans',sans-serif"}}>👑 ADMIN</span>}
+                  </div>
+                </div>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                {saving&&<div style={{width:16,height:16,border:"2px solid #D5C9BF",borderTopColor:"#2C5F2E",borderRadius:"50%",animation:"spin .6s linear infinite"}}/>}
+                {criticos.length>0&&!saving&&<div style={{background:"#DC2626",color:"#fff",borderRadius:20,padding:"4px 8px",fontSize:11,fontWeight:700,fontFamily:"'DM Sans',sans-serif"}}>🚨{criticos.length}</div>}
+                {isAdmin&&<button onClick={()=>setView("admin")} style={{background:"#FEF3C7",border:"none",borderRadius:8,padding:"6px 8px",fontSize:12,fontWeight:700,color:"#B45309",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>👑</button>}
+                <button onClick={handleLogout} style={{background:"#FEE2E2",border:"none",borderRadius:8,padding:"6px 8px",fontSize:12,fontWeight:700,color:"#DC2626",cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Sair</button>
+              </div>
+            </div>
+
+            {/* Banner Free */}
+            {!isPremium&&(
+              <div style={{background:"linear-gradient(135deg,#1E4020,#2C5F2E)",borderRadius:"10px 10px 0 0",padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:0}}>
+                <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#fff"}}><strong style={{color:"#C8A97A"}}>Free</strong> · {ativos.length}/2 projetos ativos</div>
+                <button onClick={()=>setView("planos")} style={{background:"#C8A97A",color:"#1E4020",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>⭐ Upgrade R$5/mês</button>
+              </div>
+            )}
+
+            <div style={{display:"flex",borderBottom:"1px solid #EDE8E3"}}>
+              {[["ativos",`Ativos (${ativos.length})`],["concluidos",`Concluídos (${concluidos.length})`]].map(([k,l])=>(
+                <button key={k} className={`tab-btn ${tab===k?"active":""}`} onClick={()=>{setTab(k);setFilter("todos");}}>{l}</button>
+              ))}
+            </div>
+          </div>
+
+          {tab==="ativos"&&criticos.map(p=>{const info=PRAZO(p.prazo);return(
+            <div key={p.id} className="alert-in" style={{margin:"10px 16px 0",background:info.pulse==="red"?"#FEE2E2":"#FEF3C7",border:`1.5px solid ${info.border}`,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+              <span style={{fontSize:20,flexShrink:0}}>{info.icon}</span>
+              <div style={{flex:1,minWidth:0}}><div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,color:info.pulse==="red"?"#991B1B":"#92400E",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.nome}</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:info.pulse==="red"?"#B91C1C":"#B45309"}}>{info.label} · {p.cliente}</div></div>
+              <div style={{display:"flex",gap:6,flexShrink:0}}>
+                <button onClick={()=>openDetail(p.id)} style={{background:info.pulse==="red"?"#DC2626":"#D97706",color:"#fff",border:"none",borderRadius:8,padding:"5px 10px",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>Ver</button>
+                <button onClick={()=>setDismissed(d=>[...d,p.id])} style={{background:"transparent",border:"none",fontSize:18,cursor:"pointer",color:"#9C8B7D",lineHeight:1,padding:"0 2px"}}>✕</button>
+              </div>
+            </div>
+          );})}
+
+          {tab==="ativos"&&(
+            <div style={{margin:"14px 16px 0"}}>
+              <div style={{background:"linear-gradient(135deg,#FFFBF0,#FEF3C7)",border:"2px solid #F59E0B",borderRadius:14,padding:"16px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                  <div><div className="section-label" style={{color:"#B45309"}}>💰 Minha Comissão — 5%</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:26,fontWeight:900,color:"#92400E",lineHeight:1.1}}>{R$(comissaoTotal)}</div><div style={{fontSize:11,color:"#B45309",fontFamily:"'DM Sans',sans-serif",marginTop:2}}>sobre {R$(totalVendas)}</div></div>
+                  <div style={{background:"#fff",borderRadius:10,padding:"10px 12px",border:"1.5px solid #FCD34D",textAlign:"right",minWidth:110}}><div style={{fontSize:10,color:"#065F46",fontWeight:700,fontFamily:"'DM Sans',sans-serif",textTransform:"uppercase",letterSpacing:"1px"}}>✅ Garantida</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#065F46"}}>{R$(comissaoPaga)}</div><div style={{fontSize:11,color:"#DC2626",fontFamily:"'DM Sans',sans-serif"}}>falta {R$(comissaoTotal-comissaoPaga)}</div></div>
+                </div>
+                <ProgressBar pct={pctComissao} color="linear-gradient(90deg,#D97706,#F59E0B)"/>
+                <div style={{fontSize:11,color:"#B45309",fontFamily:"'DM Sans',sans-serif",marginTop:5,fontWeight:600}}>{pctComissao}% garantida</div>
+              </div>
+
+              {/* Meta — só Premium */}
+              {isPremium?(
+                <div style={{background:metaAtingida?"linear-gradient(135deg,#ECFDF5,#D1FAE5)":"linear-gradient(135deg,#EFF6FF,#DBEAFE)",border:`2px solid ${metaAtingida?"#10B981":"#3B82F6"}`,borderRadius:14,padding:"14px 16px",marginTop:10}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:meta>0?10:0}}>
+                    <div><div className="section-label" style={{color:metaAtingida?"#065F46":"#1D4ED8"}}>🎯 Meta de Comissão</div>{meta>0?<div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:900,color:metaAtingida?"#065F46":"#1D4ED8",lineHeight:1.1}}>{R$(meta)}</div>:<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B7280",marginTop:2}}>Nenhuma meta definida</div>}</div>
+                    {!metaEdit?<button onClick={()=>{setMetaInput(meta>0?String(meta):"");setMetaEdit(true);}} style={{background:metaAtingida?"#10B981":"#2563EB",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>{meta>0?"✏️ Editar":"＋ Definir"}</button>
+                    :<div style={{display:"flex",gap:6,alignItems:"center"}}><input type="number" inputMode="decimal" value={metaInput} onChange={e=>setMetaInput(e.target.value)} placeholder="Ex: 5000" style={{width:110,padding:"8px 10px",fontSize:14,borderRadius:8,border:"2px solid #3B82F6",background:"#fff",fontFamily:"'DM Sans',sans-serif",outline:"none"}} autoFocus onKeyDown={e=>e.key==="Enter"&&saveMeta(metaInput)}/><button onClick={()=>saveMeta(metaInput)} style={{background:"#2563EB",color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>✓</button><button onClick={()=>setMetaEdit(false)} style={{background:"#F3F4F6",color:"#6B7280",border:"none",borderRadius:8,padding:"8px 10px",fontSize:13,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>✕</button></div>}
+                  </div>
+                  {meta>0&&(<>
+                    {metaAtingida&&<div style={{background:"#10B981",borderRadius:10,padding:"8px 14px",marginBottom:10,textAlign:"center",fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#fff"}}>🏆 Meta atingida! Parabéns!</div>}
+                    <div style={{height:10,background:metaAtingida?"#A7F3D0":"#BFDBFE",borderRadius:5,overflow:"hidden",marginBottom:8}}><div style={{height:"100%",width:`${pctMeta}%`,background:metaAtingida?"linear-gradient(90deg,#059669,#10B981)":"linear-gradient(90deg,#2563EB,#3B82F6)",borderRadius:5,transition:"width .6s ease"}}/></div>
+                    <div style={{display:"flex",justifyContent:"space-between",fontFamily:"'DM Sans',sans-serif",fontSize:12}}><span style={{color:metaAtingida?"#065F46":"#1D4ED8",fontWeight:700}}>{pctMeta}% da meta</span>{!metaAtingida&&<span style={{color:"#6B7280"}}>faltam <strong style={{color:"#1D4ED8"}}>{R$(metaRestante)}</strong></span>}{metaAtingida&&<span style={{color:"#065F46",fontWeight:700}}>+{R$(comissaoParaMeta-meta)} acima!</span>}</div>
+                  </>)}
+                </div>
+              ):(
+                <button onClick={()=>setView("planos")} style={{marginTop:10,width:"100%",background:"linear-gradient(135deg,#1E4020,#2C5F2E)",border:"none",borderRadius:12,padding:"14px",display:"flex",alignItems:"center",justifyContent:"space-between",fontFamily:"'DM Sans',sans-serif",cursor:"pointer"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:20}}>🎯</span><div style={{textAlign:"left"}}><div style={{fontWeight:700,fontSize:13,color:"#fff"}}>Meta de Comissão</div><div style={{fontSize:11,color:"#C8A97A"}}>Disponível no Premium</div></div></div>
+                  <span style={{background:"#C8A97A",color:"#1E4020",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700}}>⭐ R$5/mês</span>
+                </button>
+              )}
+
+              {isPremium&&<button onClick={()=>setView("relatorio")} style={{marginTop:10,width:"100%",background:"#fff",border:"2px solid #2C5F2E",borderRadius:12,padding:"12px",display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#2C5F2E",cursor:"pointer"}}>📊 Ver Relatório Anual</button>}
+              {isPremium
+                ? <button onClick={()=>setView("agenda")} style={{marginTop:10,width:"100%",background:"#fff",border:"2px solid #2C5F2E",borderRadius:12,padding:"12px",display:"flex",alignItems:"center",justifyContent:"center",gap:8,fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#2C5F2E",cursor:"pointer"}}>📅 Agenda de Visitas</button>
+                : <button onClick={()=>setView("planos")} style={{marginTop:10,width:"100%",background:"#F9F7F5",border:"2px dashed #D5C9BF",borderRadius:12,padding:"12px",display:"flex",alignItems:"center",justifyContent:"space-between",fontFamily:"'DM Sans',sans-serif",cursor:"pointer"}}>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:20}}>📅</span><div style={{textAlign:"left"}}><div style={{fontWeight:700,fontSize:13,color:"#6B5744"}}>Agenda de Visitas</div><div style={{fontSize:11,color:"#9C8B7D"}}>Disponível no Premium</div></div></div>
+                    <span style={{background:"linear-gradient(135deg,#1E4020,#2C5F2E)",color:"#C8A97A",borderRadius:8,padding:"5px 10px",fontSize:11,fontWeight:700}}>⭐ R$5/mês</span>
+                  </button>
+              }
+
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginTop:10}}>
+                {[{label:"Projetos",val:ativos.length,unit:isPremium?"ativos":`${ativos.length}/2`},{label:"Receita",val:R$(totalVendas),unit:"total"},{label:"Recebido",val:R$(totalRecebido),unit:`${totalVendas>0?Math.round(totalRecebido/totalVendas*100):0}%`,green:true}].map((s,i)=>(
+                  <div key={i} style={{background:"#fff",border:"1px solid #E5DDD5",borderRadius:12,padding:"12px 10px",textAlign:"center"}}><div className="section-label">{s.label}</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:s.green?"#2C5F2E":"#1C1410"}}>{s.val}</div><div style={{fontSize:10,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>{s.unit}</div></div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tab==="ativos"&&(<div style={{display:"flex",gap:8,padding:"14px 16px 0",overflowX:"auto",scrollbarWidth:"none"}}>{[{k:"todos",l:"Todos"},{k:"em_projeto",l:"✏️ Em Projeto"},{k:"na_fabrica",l:"🏭 Na Fábrica"},{k:"aguardando_pagamento",l:"💰 Ag. Pgto"}].map(f=>(<button key={f.k} className={`chip ${filter===f.k?"active":""}`} onClick={()=>setFilter(f.k)}>{f.l}</button>))}</div>)}
+
+          <div style={{display:"flex",gap:6,padding:"10px 16px 0",overflowX:"auto",scrollbarWidth:"none"}}>{[["🚨","Atrasado"],["🟠","1-3d"],["🟡","4-7d"],["🟢","8-14d"],["📅","+15d"]].map(([ic,lb])=>(<span key={lb} style={{display:"inline-flex",alignItems:"center",gap:3,fontSize:11,color:"#6B5744",fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap",background:"#fff",border:"1px solid #E5DDD5",borderRadius:20,padding:"3px 10px"}}>{ic} {lb}</span>))}</div>
+
+          <div style={{padding:"14px 16px 0",display:"flex",flexDirection:"column",gap:12}}>
+            {sorted.length===0?<div style={{textAlign:"center",padding:"48px 0",color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}><div style={{fontSize:48,marginBottom:12}}>📐</div><div style={{fontSize:15,marginBottom:20}}>{projects.length===0?"Nenhum projeto ainda":"Nenhum projeto aqui"}</div>{tab==="ativos"&&<button className="btn-green" style={{maxWidth:200,margin:"0 auto"}} onClick={openNew}>＋ Novo Projeto</button>}</div>
+            :sorted.map(p=>{
+              const st=STATUS[p.status],pr=PRAZO(p.prazo),pct=p.valor>0?Math.round((p.pago/p.valor)*100):0;
+              return(<div key={p.id} className={`card-in ${pr.pulse==="red"?"pulse-red":pr.pulse==="orange"?"pulse-orange":""}`} onClick={()=>openDetail(p.id)} style={{background:"#fff",borderRadius:16,border:`2px solid ${pr.pulse?pr.border:"#E5DDD5"}`,overflow:"hidden",cursor:"pointer",boxShadow:"0 2px 12px rgba(0,0,0,.06)"}}>
+                {pr.pulse&&<div style={{background:pr.bg,padding:"7px 14px",display:"flex",alignItems:"center",gap:6}}><span style={{fontSize:14}}>{pr.icon}</span><span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:pr.color}}>{pr.d<0?`ATRASADO ${Math.abs(pr.d)} DIA${Math.abs(pr.d)>1?"S":""}`:pr.d===0?"VENCE HOJE!":`PRAZO EM ${pr.d} DIA${pr.d>1?"S":""}!`}</span></div>}
+                <div style={{padding:"14px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8,marginBottom:8}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,lineHeight:1.3,flex:1}}>{p.nome}</div><Badge st={st}/></div>
+                  <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B5744",marginBottom:12}}>👤 <strong>{p.cliente}</strong>{p.contato&&<span style={{color:"#9C8B7D"}}> · {p.contato}</span>}</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+                    <div style={{background:"#F9F7F5",borderRadius:10,padding:"10px 12px"}}><div className="section-label">Valor</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700}}>{R$(p.valor)}</div><div style={{fontSize:11,color:pct>=100?"#059669":"#9C8B7D",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>{R$(p.pago)} recebido</div></div>
+                    <div style={{background:"#FFFBF0",border:"1.5px solid #FCD34D",borderRadius:10,padding:"10px 12px"}}><div className="section-label" style={{color:"#B45309"}}>💰 Comissão</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#92400E"}}>{R$(p.valor*COMISSAO_PCT)}</div><div style={{fontSize:11,color:"#065F46",fontFamily:"'DM Sans',sans-serif",fontWeight:600}}>{R$(p.pago*COMISSAO_PCT)} garantida</div></div>
+                  </div>
+                  <ProgressBar pct={pct}/>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:8}}><span style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#9C8B7D"}}>📅 {DD(p.prazo)}</span><PrazoBadge prazo={p.prazo}/></div>
+                </div>
+              </div>);
+            })}
+          </div>
+        </div>
+      )}
+
+      {view==="detalhe"&&activeProject&&(()=>{
+        const p=activeProject,st=STATUS[p.status],pr=PRAZO(p.prazo),pct=p.valor>0?Math.round((p.pago/p.valor)*100):0,com=p.valor*COMISSAO_PCT,comPaga=p.pago*COMISSAO_PCT;
+        return(<div style={{paddingBottom:100}} className="card-in">
+          <div style={{background:"#fff",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}><button onClick={goBack} style={{background:"#F2EDE8",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button><div style={{flex:1,minWidth:0}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.nome}</div><div style={{fontSize:11,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>{p.cliente}</div></div><Badge st={st}/></div>
+          <div style={{padding:"16px"}}>
+            {pr.pulse&&<div className="alert-in" style={{background:pr.bg,border:`2px solid ${pr.border}`,borderRadius:14,padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:10}}><span style={{fontSize:24}}>{pr.icon}</span><div><div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:pr.color}}>{pr.d<0?`ATRASADO ${Math.abs(pr.d)} dia${Math.abs(pr.d)>1?"s":""}`:pr.d===0?"Prazo vence HOJE!":`Prazo em ${pr.d} dia${pr.d>1?"s":""}!`}</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:pr.color,opacity:.8}}>Previsto para {DD(p.prazo)}</div></div></div>}
+            {p.descricao&&<div style={{background:"#fff",borderRadius:12,padding:"12px 14px",marginBottom:12,fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#6B5744",border:"1px solid #E5DDD5"}}>{p.descricao}</div>}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>{[{l:"Cliente",v:p.cliente},{l:"Contato",v:p.contato||"—"},{l:"Prazo",v:DD(p.prazo)},{l:"Situação",v:<PrazoBadge prazo={p.prazo} large/>},{l:"Valor Total",v:R$(p.valor)},{l:"Recebido",v:R$(p.pago),green:true}].map((item,i)=>(<div key={i} style={{background:"#fff",border:"1px solid #E5DDD5",borderRadius:12,padding:"12px 14px"}}><div className="section-label">{item.l}</div>{typeof item.v==="string"?<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,fontWeight:600,color:item.green?"#2C5F2E":"#1C1410"}}>{item.v}</div>:item.v}</div>))}</div>
+            <div style={{background:"linear-gradient(135deg,#FFFBF0,#FEF3C7)",border:"2px solid #F59E0B",borderRadius:14,padding:"14px 16px",marginBottom:12}}><div className="section-label" style={{color:"#B45309"}}>💰 Comissão — 5%</div><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}><div><div style={{fontFamily:"'Playfair Display',serif",fontSize:24,fontWeight:700,color:"#92400E"}}>{R$(com)}</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#B45309"}}>total</div></div><div style={{display:"flex",gap:12}}><div style={{textAlign:"right"}}><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#065F46",fontWeight:700}}>✅ Garantida</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#065F46"}}>{R$(comPaga)}</div></div><div style={{textAlign:"right"}}><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#DC2626",fontWeight:700}}>⏳ A receber</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#DC2626"}}>{R$(com-comPaga)}</div></div></div></div><ProgressBar pct={pct} color="linear-gradient(90deg,#D97706,#F59E0B)"/></div>
+            <div style={{background:"#fff",border:"1px solid #E5DDD5",borderRadius:14,padding:"14px 16px",marginBottom:20}}><div className="section-label">Pagamento — {pct}%</div><ProgressBar pct={pct}/><div style={{display:"flex",justifyContent:"space-between",fontSize:12,color:"#9C8B7D",marginTop:7,fontFamily:"'DM Sans',sans-serif"}}><span><strong style={{color:"#2C5F2E"}}>{R$(p.pago)}</strong> recebido</span><span><strong style={{color:"#DC2626"}}>{R$(p.valor-p.pago)}</strong> a receber</span></div></div>
+            {p.status!=="concluido"?<div style={{display:"flex",flexDirection:"column",gap:10}}><button className="btn-green" onClick={()=>openEdit(p)}>✏️ Editar</button><div style={{display:"flex",gap:10}}><button className="btn-blue" onClick={()=>concluir(p.id)}>✅ Concluir</button><button className="btn-red" onClick={()=>remove(p.id)}>🗑 Excluir</button></div></div>:<div style={{display:"flex",flexDirection:"column",gap:10}}><button className="btn-outline" onClick={()=>reabrir(p.id)}>🔄 Reabrir</button><button className="btn-red" style={{width:"100%"}} onClick={()=>remove(p.id)}>🗑 Excluir</button></div>}
+          </div>
+        </div>);
+      })()}
+
+      {view==="form"&&(
+        <div style={{paddingBottom:100}} className="card-in">
+          <div style={{background:"#fff",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}><button onClick={goBack} style={{background:"#F2EDE8",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button><div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700}}>{editId?"Editar Projeto":"Novo Projeto"}</div></div>
+          <div style={{padding:"20px 16px",display:"flex",flexDirection:"column",gap:18}}>
+            {[{l:"Nome do Projeto *",k:"nome",ph:"Ex: Cozinha Completa"},{l:"Cliente *",k:"cliente",ph:"Nome do cliente"},{l:"Contato",k:"contato",ph:"(00) 00000-0000"}].map(f=>(<div key={f.k}><div className="section-label">{f.l}</div><input value={form[f.k]} onChange={ff(f.k)} placeholder={f.ph} inputMode={f.k==="contato"?"tel":"text"}/></div>))}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>{[{l:"Valor Total (R$) *",k:"valor"},{l:"Já Recebido (R$)",k:"pago"}].map(f=>(<div key={f.k}><div className="section-label">{f.l}</div><input type="number" inputMode="decimal" value={form[f.k]} onChange={ff(f.k)} placeholder="0,00"/></div>))}</div>
+            {parseFloat(form.valor)>0&&<div style={{background:"linear-gradient(135deg,#FFFBF0,#FEF3C7)",border:"2px solid #F59E0B",borderRadius:12,padding:"12px 14px",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div className="section-label" style={{color:"#B45309"}}>💰 Comissão (5%)</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:20,fontWeight:700,color:"#92400E"}}>{R$(parseFloat(form.valor)*COMISSAO_PCT)}</div></div>{parseFloat(form.pago)>0&&<div style={{textAlign:"right"}}><div className="section-label" style={{color:"#065F46"}}>✅ Garantida</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:17,fontWeight:700,color:"#065F46"}}>{R$(parseFloat(form.pago)*COMISSAO_PCT)}</div></div>}</div>}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}><div><div className="section-label">Prazo *</div><input type="date" value={form.prazo} onChange={ff("prazo")}/></div><div><div className="section-label">Status</div><select value={form.status} onChange={ff("status")}><option value="em_projeto">✏️ Em Projeto</option><option value="na_fabrica">🏭 Na Fábrica</option><option value="aguardando_pagamento">💰 Ag. Pagamento</option></select></div></div>
+            {form.prazo&&<div style={{display:"flex",alignItems:"center",gap:8,fontFamily:"'DM Sans',sans-serif",fontSize:13,color:"#6B5744"}}><span>Prazo:</span><PrazoBadge prazo={form.prazo} large/></div>}
+            <div><div className="section-label">Descrição</div><textarea rows={3} value={form.descricao} onChange={ff("descricao")} placeholder="Detalhes do projeto..." style={{resize:"none"}}/></div>
+            <button className="btn-green" onClick={saveForm} style={{marginTop:4}}>{saving?<><Spin/>Salvando...</>:editId?"✅ Salvar Alterações":"✅ Criar Projeto"}</button>
+          </div>
+        </div>
+      )}
+
+      {view==="relatorio"&&isPremium&&(
+        <div style={{paddingBottom:40}} className="card-in">
+          <div style={{background:"#fff",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}><button onClick={()=>setView("lista")} style={{background:"#F2EDE8",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button><div style={{flex:1}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700}}>Relatório Anual</div><div style={{fontSize:11,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>Comissão por mês</div></div><div style={{display:"flex",alignItems:"center",gap:6}}><button onClick={()=>setAnoRel(a=>a-1)} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:30,height:30,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button><span style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:15,minWidth:40,textAlign:"center"}}>{anoRel}</span><button onClick={()=>setAnoRel(a=>a+1)} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:30,height:30,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button></div></div>
+          <div style={{padding:"16px"}}>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+              <div style={{background:"linear-gradient(135deg,#FFFBF0,#FEF3C7)",border:"2px solid #F59E0B",borderRadius:14,padding:"14px"}}><div className="section-label" style={{color:"#B45309"}}>💰 Total do Ano</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900,color:"#92400E"}}>{R$(totalAno)}</div></div>
+              <div style={{background:"linear-gradient(135deg,#ECFDF5,#D1FAE5)",border:"2px solid #10B981",borderRadius:14,padding:"14px"}}><div className="section-label" style={{color:"#065F46"}}>🏆 Melhor Mês</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:22,fontWeight:900,color:"#065F46"}}>{melhorMes.total>0?melhorMes.mes:"—"}</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#065F46",marginTop:2}}>{melhorMes.total>0?R$(melhorMes.total):"sem dados"}</div></div>
+            </div>
+            <div style={{background:"#fff",border:"1px solid #E5DDD5",borderRadius:14,padding:"16px",marginBottom:16}}>
+              <div className="section-label" style={{marginBottom:14}}>Comissão por Mês — {anoRel}</div>
+              <div style={{display:"flex",alignItems:"flex-end",gap:4,height:140,marginBottom:8}}>{dadosMensais.map(d=>{const h=maxMensal>0?Math.round((d.total/maxMensal)*120):0,iM=d.total>0&&d.total===melhorMes.total,mA=new Date().getMonth()===d.idx&&new Date().getFullYear()===anoRel;return(<div key={d.mes} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><div style={{fontSize:9,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif",fontWeight:600,height:16,display:"flex",alignItems:"flex-end"}}>{d.total>0?(d.total>=1000?`${(d.total/1000).toFixed(1)}k`:Math.round(d.total)):""}</div><div style={{width:"100%",display:"flex",alignItems:"flex-end",height:120}}><div style={{width:"100%",height:h>0?h:3,background:iM?"linear-gradient(180deg,#F59E0B,#D97706)":mA?"linear-gradient(180deg,#3B82F6,#2563EB)":h>0?"linear-gradient(180deg,#4ADE80,#2C5F2E)":"#F3F4F6",borderRadius:"4px 4px 2px 2px",transition:"height .4s ease"}}/></div></div>);})}</div>
+              <div style={{display:"flex",gap:4}}>{dadosMensais.map(d=>{const mA=new Date().getMonth()===d.idx&&new Date().getFullYear()===anoRel;return<div key={d.mes} style={{flex:1,textAlign:"center",fontSize:9,fontFamily:"'DM Sans',sans-serif",fontWeight:mA?700:500,color:mA?"#2563EB":"#9C8B7D"}}>{d.mes}</div>;})}</div>
+            </div>
+            <div style={{background:"#fff",border:"1px solid #E5DDD5",borderRadius:14,overflow:"hidden"}}>
+              <div style={{padding:"14px 16px",borderBottom:"1px solid #F3F4F6"}}><div className="section-label">Detalhamento Mensal</div></div>
+              {dadosMensais.map((d,i)=>{const mA=new Date().getMonth()===d.idx&&new Date().getFullYear()===anoRel,iM=d.total>0&&d.total===melhorMes.total,pY=totalAno>0?Math.round((d.total/totalAno)*100):0;return(<div key={d.mes} style={{padding:"12px 16px",borderBottom:i<11?"1px solid #F9F7F5":"none",background:mA?"#EFF6FF":"transparent",display:"flex",alignItems:"center",gap:12}}><div style={{width:36,textAlign:"center"}}><div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:13,color:mA?"#2563EB":iM?"#D97706":"#374151"}}>{d.mes}</div>{iM&&<div style={{fontSize:9,color:"#D97706",fontWeight:700}}>🏆</div>}{mA&&<div style={{fontSize:9,color:"#2563EB",fontWeight:700}}>ATUAL</div>}</div><div style={{flex:1}}>{d.total>0?<><div style={{height:6,background:"#F3F4F6",borderRadius:3,overflow:"hidden",marginBottom:4}}><div style={{height:"100%",width:`${pY}%`,background:iM?"linear-gradient(90deg,#F59E0B,#D97706)":mA?"linear-gradient(90deg,#3B82F6,#2563EB)":"linear-gradient(90deg,#4ADE80,#2C5F2E)",borderRadius:3}}/></div><div style={{display:"flex",gap:8,fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#9C8B7D"}}>{d.comissaoConcl>0&&<span>✅ {R$(d.comissaoConcl)}</span>}{d.comissaoAtiv>0&&<span>⏳ {R$(d.comissaoAtiv)}</span>}<span>{d.projetos} projeto{d.projetos!==1?"s":""}</span></div></>:<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#D1D5DB"}}>Sem projetos</div>}</div><div style={{textAlign:"right",minWidth:70}}><div style={{fontFamily:"'Playfair Display',serif",fontSize:15,fontWeight:700,color:d.total>0?(iM?"#D97706":"#1C1410"):"#D1D5DB"}}>{d.total>0?R$(d.total):"—"}</div>{d.total>0&&<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:10,color:"#9C8B7D"}}>{pY}% do ano</div>}</div></div>);})}
+              <div style={{padding:"14px 16px",background:"#F9F7F5",borderTop:"2px solid #E5DDD5",display:"flex",justifyContent:"space-between",alignItems:"center"}}><div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:"#374151"}}>Total {anoRel}</div><div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:900,color:"#92400E"}}>{R$(totalAno)}</div></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {view==="agenda"&&(()=>{
+        const TIPOS = {
+          medicao:    {label:"Medição",    icon:"📐", color:"#1D4ED8", bg:"#DBEAFE", border:"#3B82F6"},
+          entrega:    {label:"Entrega",    icon:"🚚", color:"#065F46", bg:"#D1FAE5", border:"#10B981"},
+          instalacao: {label:"Instalação", icon:"🔧", color:"#92400E", bg:"#FEF3C7", border:"#F59E0B"},
+          outro:      {label:"Outro",      icon:"📌", color:"#374151", bg:"#F3F4F6", border:"#D1D5DB"},
+        };
+        const MESES_NOME = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+        const hoje = new Date();
+        const diasNoMes = new Date(agendaAno, agendaMes+1, 0).getDate();
+        const primeiroDia = new Date(agendaAno, agendaMes, 1).getDay();
+        const agendaDoMes = agendamentos.filter(a=>{
+          const d = new Date(a.data+"T00:00:00");
+          return d.getMonth()===agendaMes && d.getFullYear()===agendaAno;
+        });
+        const proximos = [...agendamentos]
+          .filter(a=>new Date(a.data+"T"+a.hora)>=hoje)
+          .sort((a,b)=>new Date(a.data+"T"+a.hora)-new Date(b.data+"T"+b.hora))
+          .slice(0,10);
+
+        const getDiaAgendas = (dia) => agendaDoMes.filter(a=>new Date(a.data+"T00:00:00").getDate()===dia);
+
+        return(
+        <div style={{minHeight:"100vh",background:"#F2EDE8",paddingBottom:90}} className="card-in">
+          {/* Header */}
+          <div style={{background:"#fff",padding:"16px 20px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+            <button onClick={()=>setView("lista")} style={{background:"#F2EDE8",border:"none",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",fontSize:18}}>←</button>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700}}>Agenda de Visitas</div>
+              <div style={{fontSize:11,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>{agendamentos.length} agendamento{agendamentos.length!==1?"s":""}</div>
+            </div>
+            <button onClick={()=>{setAgendaEdit(null);setAgendaForm({tipo:"medicao",data:"",hora:"",projeto:"",obs:""});setAgendaModal(true);}} style={{background:"#2C5F2E",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"}}>＋ Novo</button>
+          </div>
+
+          <div style={{padding:"16px",display:"flex",flexDirection:"column",gap:14}}>
+
+            {/* Calendário */}
+            <div style={{background:"#fff",borderRadius:14,padding:"16px",border:"1px solid #E5DDD5"}}>
+              {/* Nav mês */}
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                <button onClick={()=>{if(agendaMes===0){setAgendaMes(11);setAgendaAno(a=>a-1);}else setAgendaMes(m=>m-1);}} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:32,height:32,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:16,fontWeight:700}}>{MESES_NOME[agendaMes]} {agendaAno}</div>
+                <button onClick={()=>{if(agendaMes===11){setAgendaMes(0);setAgendaAno(a=>a+1);}else setAgendaMes(m=>m+1);}} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:32,height:32,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+              </div>
+
+              {/* Dias da semana */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:4}}>
+                {["D","S","T","Q","Q","S","S"].map((d,i)=>(
+                  <div key={i} style={{textAlign:"center",fontSize:10,fontWeight:700,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif",padding:"4px 0"}}>{d}</div>
+                ))}
+              </div>
+
+              {/* Grade do calendário */}
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+                {Array(primeiroDia).fill(null).map((_,i)=><div key={"e"+i}/>)}
+                {Array(diasNoMes).fill(null).map((_,i)=>{
+                  const dia = i+1;
+                  const ehHoje = dia===hoje.getDate()&&agendaMes===hoje.getMonth()&&agendaAno===hoje.getFullYear();
+                  const ags = getDiaAgendas(dia);
+                  return(
+                    <div key={dia} style={{minHeight:42,borderRadius:8,padding:"4px 2px",background:ehHoje?"#2C5F2E":ags.length>0?"#F0F7F0":"transparent",border:ehHoje?"2px solid #1E4020":ags.length>0?"1px solid #D1FAE5":"1px solid transparent",display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+                      <div style={{fontSize:12,fontWeight:ehHoje?700:400,color:ehHoje?"#fff":"#1C1410",fontFamily:"'DM Sans',sans-serif"}}>{dia}</div>
+                      {ags.slice(0,2).map((a,ai)=>(
+                        <div key={ai} style={{width:"80%",height:4,borderRadius:2,background:TIPOS[a.tipo]?.color||"#9C8B7D"}}/>
+                      ))}
+                      {ags.length>2&&<div style={{fontSize:8,color:"#9C8B7D",fontFamily:"'DM Sans',sans-serif"}}>+{ags.length-2}</div>}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Legenda */}
+              <div style={{display:"flex",gap:10,marginTop:12,flexWrap:"wrap"}}>
+                {Object.entries(TIPOS).map(([k,t])=>(
+                  <div key={k} style={{display:"flex",alignItems:"center",gap:4,fontSize:11,fontFamily:"'DM Sans',sans-serif",color:"#6B5744"}}>
+                    <div style={{width:10,height:10,borderRadius:2,background:t.color}}/>{t.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Próximos agendamentos */}
+            <div>
+              <div className="section-label" style={{marginBottom:10}}>Próximos Agendamentos</div>
+              {proximos.length===0
+                ?<div style={{textAlign:"center",padding:32,background:"#fff",borderRadius:14,border:"1px solid #E5DDD5"}}><div style={{fontSize:40,marginBottom:8}}>📅</div><div style={{fontFamily:"'DM Sans',sans-serif",fontSize:14,color:"#9C8B7D"}}>Nenhum agendamento futuro</div></div>
+                :proximos.map(a=>{
+                  const t=TIPOS[a.tipo]||TIPOS.outro;
+                  const dataFmt = new Date(a.data+"T00:00:00").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"});
+                  const ehHoje2 = a.data===hoje.toISOString().split("T")[0];
+                  return(
+                    <div key={a.id} style={{background:"#fff",borderRadius:14,padding:"14px 16px",marginBottom:10,border:`2px solid ${ehHoje2?t.border:"#E5DDD5"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
+                      <div style={{width:44,height:44,background:t.bg,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:`1.5px solid ${t.border}`}}>{t.icon}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:8}}>
+                          <div>
+                            <div style={{fontFamily:"'DM Sans',sans-serif",fontWeight:700,fontSize:14,color:t.color}}>{t.label}</div>
+                            {a.projeto&&<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#6B5744",marginTop:1}}>📐 {a.projeto}</div>}
+                          </div>
+                          <div style={{textAlign:"right",flexShrink:0}}>
+                            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,fontWeight:700,color:"#1C1410"}}>{a.hora}</div>
+                            <div style={{fontFamily:"'DM Sans',sans-serif",fontSize:11,color:"#9C8B7D"}}>{dataFmt}</div>
+                          </div>
+                        </div>
+                        {a.obs&&<div style={{fontFamily:"'DM Sans',sans-serif",fontSize:12,color:"#9C8B7D",marginTop:6,background:"#F9F7F5",borderRadius:6,padding:"4px 8px"}}>{a.obs}</div>}
+                        {ehHoje2&&<div style={{background:t.bg,border:`1px solid ${t.border}`,borderRadius:6,padding:"3px 8px",marginTop:6,display:"inline-block",fontFamily:"'DM Sans',sans-serif",fontSize:10,fontWeight:700,color:t.color}}>HOJE</div>}
+                      </div>
+                      <div style={{display:"flex",flexDirection:"column",gap:4,flexShrink:0}}>
+                        <button onClick={()=>{setAgendaEdit(a.id);setAgendaForm({tipo:a.tipo,data:a.data,hora:a.hora,projeto:a.projeto||"",obs:a.obs||""});setAgendaModal(true);}} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:30,height:30,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
+                        <button onClick={()=>deleteAgenda(a.id)} style={{background:"#FEE2E2",border:"none",borderRadius:8,width:30,height:30,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>🗑</button>
+                      </div>
+                    </div>
+                  );
+                })
+              }
+            </div>
+          </div>
+
+          {/* Modal novo agendamento */}
+          {agendaModal&&(
+            <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:100,display:"flex",alignItems:"flex-end",justifyContent:"center"}} onClick={e=>{if(e.target===e.currentTarget){setAgendaModal(false);setAgendaEdit(null);}}}>
+              <div style={{background:"#fff",borderRadius:"20px 20px 0 0",padding:"24px 20px",width:"100%",maxWidth:480,maxHeight:"85vh",overflowY:"auto"}} className="card-in">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:18,fontWeight:700}}>{agendaEdit?"Editar":"Novo"} Agendamento</div>
+                  <button onClick={()=>{setAgendaModal(false);setAgendaEdit(null);}} style={{background:"#F2EDE8",border:"none",borderRadius:8,width:32,height:32,cursor:"pointer",fontSize:18}}>✕</button>
+                </div>
+
+                <div style={{display:"flex",flexDirection:"column",gap:16}}>
+                  <div>
+                    <div className="section-label">Tipo *</div>
+                    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+                      {Object.entries(TIPOS).map(([k,t])=>(
+                        <button key={k} onClick={()=>setAgendaForm(f=>({...f,tipo:k}))} style={{padding:"10px 8px",borderRadius:10,border:`2px solid ${agendaForm.tipo===k?t.color:"#E5DDD5"}`,background:agendaForm.tipo===k?t.bg:"#fff",cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"'DM Sans',sans-serif",fontSize:13,fontWeight:agendaForm.tipo===k?700:400,color:agendaForm.tipo===k?t.color:"#6B5744",transition:"all .2s"}}>
+                          <span style={{fontSize:16}}>{t.icon}</span>{t.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                    <div><div className="section-label">Data *</div><input type="date" value={agendaForm.data} onChange={e=>setAgendaForm(f=>({...f,data:e.target.value}))}/></div>
+                    <div><div className="section-label">Horário *</div><input type="time" value={agendaForm.hora} onChange={e=>setAgendaForm(f=>({...f,hora:e.target.value}))}/></div>
+                  </div>
+
+                  <div>
+                    <div className="section-label">Projeto (opcional)</div>
+                    <select value={agendaForm.projeto} onChange={e=>setAgendaForm(f=>({...f,projeto:e.target.value}))}>
+                      <option value="">Selecionar projeto...</option>
+                      {projects.map(p=><option key={p.id} value={p.nome}>{p.nome} — {p.cliente}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <div className="section-label">Observações</div>
+                    <textarea rows={2} value={agendaForm.obs} onChange={e=>setAgendaForm(f=>({...f,obs:e.target.value}))} placeholder="Endereço, contato, detalhes..." style={{resize:"none"}}/>
+                  </div>
+
+                  <button className="btn-green" onClick={saveAgenda}>
+                    {agendaEdit?"✅ Salvar Alterações":"✅ Criar Agendamento"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button className="fab" onClick={()=>{setAgendaEdit(null);setAgendaForm({tipo:"medicao",data:"",hora:"",projeto:"",obs:""});setAgendaModal(true);}}>＋</button>
+        </div>
+        );
+      })()}
+
+      {view==="lista"&&tab==="ativos"&&<button className="fab" onClick={openNew}>＋</button>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
